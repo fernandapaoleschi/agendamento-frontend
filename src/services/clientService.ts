@@ -2,7 +2,9 @@ import type Client from "../models/Client"
 import { api, authHeader } from "./api"
 
 // 🔎 LISTAR
-export const buscarClients = async (setDados: Function) => {
+export const getClients = async (
+  setDados: (data: Client[]) => void
+) => {
   const resposta = await api.get<Client[]>(
     "/clients",
     authHeader()
@@ -11,9 +13,9 @@ export const buscarClients = async (setDados: Function) => {
 }
 
 // ➕ CRIAR
-export const cadastrarClient = async (
-  dados: Object,
-  setDados: Function
+export const createClient = async (
+  dados: any,
+  setDados: (data: Client) => void
 ) => {
   const resposta = await api.post<Client>(
     "/clients",
@@ -24,10 +26,10 @@ export const cadastrarClient = async (
 }
 
 // ✏️ ATUALIZAR
-export const atualizarClient = async (
+export const updateClient = async (
   id: number,
-  dados: Object,
-  setDados: Function
+  dados: any,
+  setDados: (data: Client) => void
 ) => {
   const resposta = await api.put<Client>(
     `/clients/${id}`,
@@ -38,6 +40,6 @@ export const atualizarClient = async (
 }
 
 // ❌ DELETAR
-export const deletarClient = async (id: number) => {
+export const deleteClient = async (id: number) => {
   await api.delete(`/clients/${id}`, authHeader())
 }

@@ -2,8 +2,8 @@ import type Appointment from "../models/Appointment"
 import { api, authHeader } from "./api"
 
 // 🔎 LISTAR
-export const buscarAppointments = async (
-  setDados: Function
+export const getAppointments = async (
+  setDados: (data: Appointment[]) => void
 ) => {
   const resposta = await api.get<Appointment[]>(
     "/appointments",
@@ -13,9 +13,9 @@ export const buscarAppointments = async (
 }
 
 // 🔎 BUSCAR POR ID
-export const buscarAppointmentPorId = async (
+export const getAppointmentById = async (
   id: number,
-  setDados: Function
+  setDados: (data: Appointment) => void
 ) => {
   const resposta = await api.get<Appointment>(
     `/appointments/${id}`,
@@ -25,9 +25,9 @@ export const buscarAppointmentPorId = async (
 }
 
 // ➕ CRIAR
-export const cadastrarAppointment = async (
-  dados: Object,
-  setDados: Function
+export const createAppointment = async (
+  dados: any,
+  setDados: (data: Appointment) => void
 ) => {
   const resposta = await api.post<Appointment>(
     "/appointments",
@@ -37,11 +37,11 @@ export const cadastrarAppointment = async (
   setDados(resposta.data)
 }
 
-// ✏️ ATUALIZAR STATUS
-export const atualizarStatusAppointment = async (
+// ✏️ STATUS
+export const updateAppointmentStatus = async (
   id: number,
   status: string,
-  setDados: Function
+  setDados: (data: Appointment) => void
 ) => {
   const resposta = await api.put<Appointment>(
     `/appointments/${id}/status`,
@@ -51,7 +51,7 @@ export const atualizarStatusAppointment = async (
   setDados(resposta.data)
 }
 
-// ❌ DELETAR
-export const deletarAppointment = async (id: number) => {
+// ❌ DELETE
+export const deleteAppointment = async (id: number) => {
   await api.delete(`/appointments/${id}`, authHeader())
 }
