@@ -78,17 +78,18 @@ export default function KanbanCard({ appointment }: Props) {
           <p className="text-xs text-zinc-500 mb-2">
             {appointment.date} • {appointment.start_time}
           </p>
+{/* VEÍCULO + VALOR */}
+<div className="flex justify-between items-center text-sm">
+  <span className="text-zinc-400">
+    {appointment.client?.vehicle_model
+      ? `${appointment.client.vehicle_model} • ${appointment.client.vehicle_plate}`
+      : appointment.client?.vehicle_plate || ""}
+  </span>
 
-          {/* VEÍCULO + VALOR */}
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-zinc-400">
-              {appointment.client?.vehicle_plate || ""}
-            </span>
-
-            <span className="text-yellow-500 font-semibold">
-              R$ {appointment.service_price}
-            </span>
-          </div>
+  <span className="text-yellow-500 font-semibold">
+    R$ {appointment.service_price}
+  </span>
+</div>
 
         </div>
       </div>

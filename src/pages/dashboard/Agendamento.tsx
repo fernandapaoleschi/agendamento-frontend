@@ -5,10 +5,10 @@ import KanbanBoard from "../../componentes/appointment/KanbanBoard"
 import type Appointment from "../../models/Appointment"
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
-  scheduled: { label: "Agendados",     color: "bg-yellow-500/10 border-yellow-500/20", dot: "bg-yellow-400" },
-  completed: { label: "Concluídos",    color: "bg-green-500/10 border-green-500/20",   dot: "bg-green-400"  },
-  cancelled: { label: "Cancelados",    color: "bg-red-500/10 border-red-500/20",       dot: "bg-red-500"    },
-  no_show:   { label: "Não Compareceu",color: "bg-zinc-700/20 border-zinc-600/30",     dot: "bg-zinc-400"   },
+  scheduled: { label: "Agendados",      color: "bg-yellow-500/10 border-yellow-500/20", dot: "bg-yellow-400" },
+  completed: { label: "Concluídos",     color: "bg-green-500/10 border-green-500/20",   dot: "bg-green-400"  },
+  cancelled: { label: "Cancelados",     color: "bg-red-500/10 border-red-500/20",       dot: "bg-red-500"    },
+  no_show:   { label: "Não Compareceu", color: "bg-zinc-700/20 border-zinc-600/30",     dot: "bg-zinc-400"   },
 }
 
 function getInitials(name?: string) {
@@ -60,7 +60,6 @@ export default function Agendamento() {
     try {
       await updateAppointmentStatus(id, status, () => {})
 
-      // 🔥 atualização instantânea (UX melhor)
       setAppointments(prev =>
         prev.map(a =>
           a.id === id ? { ...a, status } : a
@@ -139,6 +138,7 @@ export default function Agendamento() {
                 <th className="px-4 py-3 text-left text-zinc-400">Cliente</th>
                 <th className="px-4 py-3 text-left text-zinc-400">Serviço</th>
                 <th className="px-4 py-3 text-left text-zinc-400">Data</th>
+                <th className="px-4 py-3 text-left text-zinc-400">Modelo</th>  {/* ✅ */}
                 <th className="px-4 py-3 text-left text-zinc-400">Placa</th>
                 <th className="px-4 py-3 text-left text-zinc-400">Valor</th>
                 <th className="px-4 py-3 text-left text-zinc-400">Status</th>
@@ -159,6 +159,7 @@ export default function Agendamento() {
 
                     <td className="px-4 py-3">{a.service_name}</td>
                     <td className="px-4 py-3">{a.date} {a.start_time}</td>
+                    <td className="px-4 py-3">{a.client?.vehicle_model || "—"}</td> {/* ✅ */}
                     <td className="px-4 py-3">{a.client?.vehicle_plate}</td>
 
                     <td className="px-4 py-3 text-yellow-400 font-bold">

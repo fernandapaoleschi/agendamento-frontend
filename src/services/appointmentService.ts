@@ -41,10 +41,10 @@ export const updateAppointmentStatus = async (
   status: string,
   setDados: (data: Appointment) => void
 ) => {
-  const resposta = await api.put<Appointment>(
-    `/appointments/${id}/status`,
-    { status }
-  )
+const resposta = await api.patch<Appointment>(
+  `/appointments/${id}/status`,
+  { status }
+)
   setDados(resposta.data)
 }
 
