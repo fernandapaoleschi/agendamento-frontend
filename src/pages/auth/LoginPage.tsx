@@ -2,7 +2,17 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { api } from "../../services/api"
 
+  // ← adiciona isso
+
+  
+  // ... resto do código
+
 export default function LoginPage() {
+    const erroAnterior = sessionStorage.getItem("ultimo_erro_401")
+  if (erroAnterior) {
+    console.warn("🔴 ROTA QUE DEU 401:", erroAnterior)
+    sessionStorage.removeItem("ultimo_erro_401")
+  }
   const navigate = useNavigate()
 
   const [email, setEmail] = useState("")
@@ -11,29 +21,35 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setError("")
 
-    try {
-      const response = await api.post("/auth/login", { email, password })
-      const { token, user } = response.data
-      localStorage.setItem("token", token)
-      if (user) {
-  localStorage.setItem("user", JSON.stringify(user))
-}
-      navigate("/dashboard")
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        setError("Email ou senha inválidos")
-      } else {
-        setError("Erro ao fazer login")
-      }
-    } finally {
-      setLoading(false)
+  try {
+    const response = await api.post("/auth/login", { email, password })
+    console.log("RESPOSTA LOGIN:", response.data) // ← veja o que vem aqui
+    
+const { access_token: token, user } = response.data
+    
+    localStorage.setItem("token", token)
+    if (user) localStorage.setItem("user", JSON.stringify(user))
+    
+    console.log("TOKEN SALVO:", localStorage.getItem("token")) // ← confirma se salvou
+    
+    setTimeout(() => navigate("/dashboard", { replace: true }), 100)
+
+  } catch (err: any) {
+    console.error("ERRO LOGIN:", err.response)
+    if (err.response?.status === 401) {
+      setError("Email ou senha inválidos")
+    } else {
+      setError("Erro ao fazer login")
     }
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white px-4">
