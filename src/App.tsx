@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import LoginPage from "./pages/auth/LoginPage"
 import DashboardLayout from "./componentes/dashboardLayout/DashboardLayout"
 
+// 🔒 ADMIN
 import Dashboard from "./pages/dashboard/Dashboard"
 import Agendamento from "./pages/dashboard/Agendamento"
 import Clientes from "./pages/dashboard/Clientes"
@@ -10,7 +11,13 @@ import Servicos from "./pages/dashboard/Servicos"
 import Profissionais from "./pages/dashboard/Profissionais"
 import Usuarios from "./pages/dashboard/Usuarios"
 import Logs from "./pages/dashboard/Logs"
+
+// 🔓 PÚBLICO
+import AgendamentoPage from "./pages/public/AgendamentoPage"
+
 import "./index.css"
+
+// ─── Private Route ─────────────────────────────────────────
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("token")
@@ -22,13 +29,20 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// ─── App ──────────────────────────────────────────────────
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
 
+        {/* 🔓 PÚBLICO */}
+        <Route path="/agendar" element={<AgendamentoPage />} />
+
+        {/* LOGIN */}
         <Route path="/login" element={<LoginPage />} />
 
+        {/* 🔒 PRIVADO */}
         <Route
           path="/"
           element={
@@ -47,7 +61,8 @@ export default function App() {
           <Route path="logs" element={<Logs />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/agendar" replace />} />
 
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { buscarLogs } from "../../services/logService"
 import type Log from "../../models/Log"
 import api, { authHeader } from "../../services/api"
 
@@ -11,20 +10,20 @@ export default function Logs() {
     load()
   }, [])
 
-const load = async () => {
-  try {
-    const res = await api.get("/logs", authHeader())
-    console.log("LOGS:", res.data) // 👈 ADD ISSO
-    setLogs(res.data)
-  } finally {
-    setLoading(false)
+  const load = async () => {
+    try {
+      const res = await api.get("/logs", authHeader())
+      console.log("LOGS:", res.data)
+      setLogs(res.data)
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleString("pt-BR")
 
-  // 🔥 traduz ação
+  // 🎯 Label + cor da ação
   const getActionLabel = (action: string) => {
     switch (action) {
       case "created":
@@ -32,7 +31,7 @@ const load = async () => {
       case "updated":
         return { label: "Atualização", color: "bg-blue-500/10 text-blue-400" }
       case "cancelled":
-        return { label: "Exclusão", color: "bg-red-500/10 text-red-400" }
+        return { label: "Cancelado", color: "bg-red-500/10 text-red-400" }
       case "completed":
         return { label: "Concluído", color: "bg-emerald-500/10 text-emerald-400" }
       default:
@@ -40,20 +39,27 @@ const load = async () => {
     }
   }
 
-  // 🔥 monta mensagem bonita
+  // 🧠 Mensagem inteligente
   const getMessage = (log: Log) => {
-    if (log.client) {
-      if (log.action === "created")
+    if (log.action === "created") {
+      if (log.appointment && log.client) {
+        return `Agendamento criado para ${log.client.name}`
+      }
+      if (log.client) {
         return `Novo cliente cadastrado: ${log.client.name}`
-    }
-
-    if (log.appointment) {
-      if (log.action === "cancelled")
-        return "Agendamento cancelado"
+      }
     }
 
     if (log.action === "updated") {
-      return "Registro atualizado"
+      return `Agendamento #${log.appointment?.id} atualizado`
+    }
+
+    if (log.action === "cancelled") {
+      return `Agendamento #${log.appointment?.id} cancelado`
+    }
+
+    if (log.action === "completed") {
+      return `Agendamento #${log.appointment?.id} concluído`
     }
 
     return "Ação realizada no sistema"
@@ -114,11 +120,42 @@ const load = async () => {
                   {getMessage(log)}
                 </p>
 
-                {/* ENTITY */}
-                <p className="text-xs text-zinc-500">
-                  {log.client && `Entidade: client #${log.client.id}`}
-                  {log.appointment && `Entidade: appointment #${log.appointment.id}`}
-                </p>
+{/* ENTITY */}
+<div className="text-xs text-zinc-500">
+  {log.client && `👤 ${log.client.name}`}
+  {log.client && log.appointment && " • "}
+  {log.appointment && `📅 #${log.appointment.id}`}
+</div>
+
+{log.data_snapshot && (
+  <div className="text-xs text-zinc-400 space-y-1 mt-2">
+
+    {log.data_snapshot.date && (
+      <p>📅 {new Date(log.data_snapshot.date).toLocaleDateString("pt-BR")}</p>
+    )}
+
+    {log.data_snapshot.start_time && (
+      <p>⏰ {log.data_snapshot.start_time} - {log.data_snapshot.end_time}</p>
+    )}
+
+    {log.data_snapshot.service && (
+      <p>🛠 Serviço: {log.data_snapshot.service}</p>
+    )}
+
+    {log.data_snapshot.professional && (
+      <p>👨‍🔧 Profissional: {log.data_snapshot.professional}</p>
+    )}
+
+    {log.data_snapshot.price && (
+      <p>💰 R$ {log.data_snapshot.price}</p>
+    )}
+
+    {log.data_snapshot.duration && (
+      <p>⏱ {log.data_snapshot.duration} min</p>
+    )}
+
+  </div>
+)}
               </div>
             </div>
           )
