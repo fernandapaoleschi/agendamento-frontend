@@ -7,22 +7,68 @@ type Props = {
   back: () => void
 }
 
+const PLATE_REGEX = /^[A-Z0-9]{7,8}$/
+
+const normalizePlate = (plate: string) =>
+  plate
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 8)
+
+const parseApiMessage = (payload: unknown): string => {
+  if (!payload || typeof payload !== "object") {
+    return "Erro ao finalizar agendamento"
+  }
+
+  const responseData = payload as {
+    message?: string | string[]
+    error?: string
+  }
+
+  if (Array.isArray(responseData.message)) {
+    return responseData.message.join("\n")
+  }
+
+  if (typeof responseData.message === "string" && responseData.message.trim()) {
+    return responseData.message
+  }
+
+  if (typeof responseData.error === "string" && responseData.error.trim()) {
+    return responseData.error
+  }
+
+  return "Erro ao finalizar agendamento"
+}
+
 export default function StepConfirmacao({ formData, back }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   const handleConfirm = async () => {
+    const vehiclePlate = normalizePlate(formData.vehicle_plate)
+
+    if (!PLATE_REGEX.test(vehiclePlate)) {
+      setErrorMessage("A placa deve conter de 7 a 8 caracteres alfanuméricos.")
+      return
+    }
+
     try {
       setLoading(true)
+      setErrorMessage("")
 
-      // 🔹 1. CRIAR CLIENTE
-      const clientRes = await api.post("/clients", {
+      const clientPayload = {
         name: formData.name,
         phone: formData.phone,
-        email: formData.email,
-        vehicle_plate: formData.vehicle_plate,
+        ...(formData.email?.trim() ? { email: formData.email.trim() } : {}),
+        vehicle_plate: vehiclePlate,
+        plate: vehiclePlate,
         vehicle_model: formData.vehicle_model,
-      })
+        vehicle: formData.vehicle_model,
+      }
+
+      // 🔹 1. CRIAR CLIENTE
+      const clientRes = await api.post("/clients", clientPayload)
 
       const client_id = clientRes.data.id
 
@@ -44,12 +90,13 @@ export default function StepConfirmacao({ formData, back }: Props) {
       })
 
       setSuccess(true)
+    } catch (err: unknown) {
+      const errorWithResponse = err as { response?: { data?: unknown } }
 
-    } catch (err: any) {
       console.log("ERRO COMPLETO:", err)
-      console.log("DATA:", err.response?.data)
+      console.log("DATA:", errorWithResponse.response?.data)
 
-      alert("Erro ao finalizar agendamento")
+      setErrorMessage(parseApiMessage(errorWithResponse.response?.data))
     } finally {
       setLoading(false)
     }
@@ -62,13 +109,9 @@ export default function StepConfirmacao({ formData, back }: Props) {
       <div className="text-center space-y-6 max-w-md">
         <div className="text-green-500 text-5xl">✅</div>
 
-        <h1 className="text-2xl font-bold">
-          Agendamento realizado!
-        </h1>
+        <h1 className="text-2xl font-bold">Agendamento realizado!</h1>
 
-        <p className="text-zinc-400">
-          Seu horário foi reservado com sucesso.
-        </p>
+        <p className="text-zinc-400">Seu horário foi reservado com sucesso.</p>
 
         <button
           onClick={() => window.location.reload()}
@@ -84,35 +127,51 @@ export default function StepConfirmacao({ formData, back }: Props) {
 
   return (
     <div className="w-full max-w-3xl space-y-8">
-
       <div className="text-center">
         <h1 className="text-2xl font-bold">Confirmação</h1>
-        <p className="text-zinc-400 mt-2">
-          Revise seus dados antes de confirmar
-        </p>
+        <p className="text-zinc-400 mt-2">Revise seus dados antes de confirmar</p>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-3 text-sm">
-
-        <p><span className="text-zinc-400">Serviço:</span> {formData.service?.name}</p>
-        <p><span className="text-zinc-400">Data:</span> {formData.date}</p>
-        <p><span className="text-zinc-400">Horário:</span> {formData.start_time} → {formData.end_time}</p>
-
-        <hr className="border-zinc-800" />
-
-        <p><span className="text-zinc-400">Nome:</span> {formData.name}</p>
-        <p><span className="text-zinc-400">Telefone:</span> {formData.phone}</p>
-        <p><span className="text-zinc-400">Veículo:</span> {formData.vehicle_model}</p>
-        <p><span className="text-zinc-400">Placa:</span> {formData.vehicle_plate}</p>
+        <p>
+          <span className="text-zinc-400">Serviço:</span> {formData.service?.name}
+        </p>
+        <p>
+          <span className="text-zinc-400">Data:</span> {formData.date}
+        </p>
+        <p>
+          <span className="text-zinc-400">Horário:</span> {formData.start_time} → {formData.end_time}
+        </p>
 
         <hr className="border-zinc-800" />
 
-        <p><span className="text-zinc-400">Pagamento:</span> {formData.payment_method}</p>
+        <p>
+          <span className="text-zinc-400">Nome:</span> {formData.name}
+        </p>
+        <p>
+          <span className="text-zinc-400">Telefone:</span> {formData.phone}
+        </p>
+        <p>
+          <span className="text-zinc-400">Veículo:</span> {formData.vehicle_model}
+        </p>
+        <p>
+          <span className="text-zinc-400">Placa:</span> {formData.vehicle_plate}
+        </p>
 
+        <hr className="border-zinc-800" />
+
+        <p>
+          <span className="text-zinc-400">Pagamento:</span> {formData.payment_method}
+        </p>
       </div>
 
-      <div className="flex justify-between mt-6">
+      {errorMessage && (
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300 whitespace-pre-line">
+          {errorMessage}
+        </div>
+      )}
 
+      <div className="flex justify-between mt-6">
         <button
           onClick={back}
           className="px-6 py-2 text-zinc-400 hover:text-white"
@@ -134,7 +193,6 @@ export default function StepConfirmacao({ formData, back }: Props) {
         >
           {loading ? "Agendando..." : "Confirmar agendamento"}
         </button>
-
       </div>
     </div>
   )
