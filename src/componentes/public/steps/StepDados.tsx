@@ -7,18 +7,27 @@ type Props = {
   back: () => void
 }
 
-export default function StepDados({ formData, update, next, back }: Props) {
+const PLATE_REGEX = /^[A-Z0-9]{7,8}$/
 
-const isValid =
-  formData.name &&
-  formData.phone &&
-  formData.email && // 👈 ADICIONA ISSO
-  formData.vehicle_plate &&
-  formData.vehicle_model
+const normalizePlate = (plate: string) =>
+  plate
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 8)
+
+export default function StepDados({ formData, update, next, back }: Props) {
+  const normalizedPlate = normalizePlate(formData.vehicle_plate)
+  const hasPlateError = formData.vehicle_plate.length > 0 && !PLATE_REGEX.test(normalizedPlate)
+
+  const isValid =
+    formData.name.trim() &&
+    formData.phone.trim() &&
+    normalizedPlate &&
+    PLATE_REGEX.test(normalizedPlate) &&
+    formData.vehicle_model.trim()
 
   return (
     <div className="w-full max-w-3xl space-y-8">
-
       {/* HEADER */}
       <div className="text-center">
         <h1 className="text-2xl font-bold">Seus Dados</h1>
@@ -29,7 +38,6 @@ const isValid =
 
       {/* FORM */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
         {/* NOME */}
         <div className="md:col-span-2">
           <label className="text-sm text-zinc-400">Nome</label>
@@ -72,10 +80,15 @@ const isValid =
           <input
             type="text"
             value={formData.vehicle_plate}
-            onChange={(e) => update({ vehicle_plate: e.target.value })}
+            onChange={(e) => update({ vehicle_plate: normalizePlate(e.target.value) })}
             className="w-full mt-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3"
             placeholder="ABC1D23"
           />
+          {hasPlateError && (
+            <p className="text-xs text-red-400 mt-1">
+              A placa deve conter de 7 a 8 caracteres alfanuméricos.
+            </p>
+          )}
         </div>
 
         {/* MODELO */}
@@ -89,7 +102,6 @@ const isValid =
             placeholder="Gol 2020"
           />
         </div>
-
       </div>
 
       {/* PAGAMENTO */}
